@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useState, useEffect} from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchUsers, deleteUser, updateUser } from '../../src/redux/userSlice';
 import './Table.css';

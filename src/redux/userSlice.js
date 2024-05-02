@@ -1,26 +1,51 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
 export const fetchUsers = createAsyncThunk('users/fetchUsers', async () => {
-    const response = await fetch('https://dummyjson.com/users');
-    const data = await response.json();
-    return data.users;
+    try {
+        const response = await fetch('https://dummyjson.com/users');
+        if (!response.ok) {
+            throw new Error('Failed to fetch users');
+        }
+        const data = await response.json();
+        return data.users;
+    } catch (error) {
+        console.error('Error fetching users:', error.message);
+        throw error;
+    }
 });
 
 export const deleteUser = createAsyncThunk('users/deleteUser', async (userId, { dispatch }) => {
-    await fetch(`https://dummyjson.com/users/${userId}`, {
-        method: 'DELETE',
-    });
-    return userId;
+    try {
+        const response = await fetch(`https://dummyjson.com/users/${userId}`, {
+            method: 'DELETE',
+        });
+        if (!response.ok) {
+            throw new Error('Failed to delete user');
+        }
+        return userId;
+    } catch (error) {
+        console.error('Error deleting user:', error.message);
+        throw error;
+    }
 });
 
 export const updateUser = createAsyncThunk('users/updateUser', async ({ userId, userData }, { dispatch }) => {
-    await fetch(`https://dummyjson.com/users/${userId}`, {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userData),
-    });
+    try {
+        const response = await fetch(`https://dummyjson.com/users/${userId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(userData),
+        });
+        if (!response.ok) {
+            throw new Error('Failed to update user');
+        }
+        return userData;
+    } catch (error) {
+        console.error('Error updating user:', error.message);
+        throw error;
+    }
 });
 
 const userSlice = createSlice({
@@ -31,14 +56,7 @@ const userSlice = createSlice({
         error: null,
         message: null,
     },
-    reducers: {
-        setMessage: (state, action) => {
-            state.message = action.payload;
-        },
-        clearMessage: (state) => {
-            state.message = null;
-        },
-    },
+    reducers: {},
     extraReducers: (builder) => {
         builder
             .addCase(fetchUsers.pending, (state) => {
@@ -57,15 +75,14 @@ const userSlice = createSlice({
                 state.list = state.list.filter(user => user.id !== action.payload);
             })
             .addCase(updateUser.fulfilled, (state, action) => {
+                const index = state.list.findIndex(user => user.id === action.payload.id);
+                state.list[index] = action.payload;
             });
     },
 });
 
-export const { setMessage, clearMessage } = userSlice.actions;
-
 export const selectUsers = (state) => state.users.list;
 export const selectLoading = (state) => state.users.loading;
 export const selectError = (state) => state.users.error;
-export const selectMessage = (state) => state.users.message;
 
 export default userSlice.reducer;
